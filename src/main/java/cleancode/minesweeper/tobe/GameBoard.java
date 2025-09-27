@@ -1,5 +1,9 @@
 package cleancode.minesweeper.tobe;
 
+import cleancode.minesweeper.tobe.cell.Cell;
+import cleancode.minesweeper.tobe.cell.EmptyCell;
+import cleancode.minesweeper.tobe.cell.LandMineCell;
+import cleancode.minesweeper.tobe.cell.NumberCell;
 import cleancode.minesweeper.tobe.gamelevel.GameLevel;
 import java.util.Arrays;
 import java.util.Random;
@@ -23,15 +27,15 @@ public class GameBoard {
 
         for (int row = 0; row < rowSize; row++) {
             for (int col = 0; col < colSize; col++) {
-                board[row][col] = Cell.create();
+                board[row][col] = new EmptyCell();
             }
         }
 
         for (int i = 0; i < landMineCount; i++) {
             int row = new Random().nextInt(rowSize);
             int col = new Random().nextInt(colSize);
-            Cell landMineCell = findCell(row, col);
-            landMineCell.turnOnLandMine();
+            LandMineCell landMineCell = new LandMineCell();
+            board[row][col] = landMineCell;
         }
 
         for (int row = 0; row < rowSize; row++) {
@@ -41,10 +45,17 @@ public class GameBoard {
                 }
 
                 int count = countNearbyLandMines(row, col);
-                Cell cell = findCell(row, col);
-                cell.updateNearbyLandMines(count);
+                if (count == 0) {
+                    continue;
+                }
+                NumberCell numberCell = new NumberCell(count);
+                board[row][col] = numberCell;
             }
         }
+    }
+
+    public String getSign(int rowIndex, int colIndex) {
+        return findCell(rowIndex, colIndex).getSign();
     }
 
     private Cell findCell(int rowIndex, int colIndex) {
@@ -57,10 +68,6 @@ public class GameBoard {
 
     public void open(int rowIndex, int colIndex) {
         findCell(rowIndex, colIndex).open();
-    }
-
-    public String getSign(int rowIndex, int colIndex) {
-        return findCell(rowIndex, colIndex).getSign();
     }
 
     public int getRowSize() {
