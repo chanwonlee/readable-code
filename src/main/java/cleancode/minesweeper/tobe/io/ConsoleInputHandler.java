@@ -1,5 +1,6 @@
 package cleancode.minesweeper.tobe.io;
 
+import cleancode.minesweeper.tobe.UserAction;
 import cleancode.minesweeper.tobe.BoardIndexConverter;
 import cleancode.minesweeper.tobe.position.CellPosition;
 import java.util.Scanner;
@@ -11,8 +12,13 @@ public class ConsoleInputHandler implements InputHandler {
     private final BoardIndexConverter boardIndexConverter = new BoardIndexConverter();
 
     @Override
-    public String getInput() {
-        return SCANNER.nextLine();
+    public UserAction getActionFromUser() {
+        String userInput = SCANNER.nextLine();
+        return switch (userInput) {
+            case "1" -> UserAction.OPEN;
+            case "2" -> UserAction.FLAG;
+            default -> UserAction.UNKNOWN;
+        };
     }
 
     @Override

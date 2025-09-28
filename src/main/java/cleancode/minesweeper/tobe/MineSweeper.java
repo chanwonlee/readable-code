@@ -12,7 +12,7 @@ public class MineSweeper implements GameRunnable, GameInitializable {
     private final GameBoard gameBoard;
     private final InputHandler inputHandler;
     private final OutputHandler outPutHandler;
-    private int gameStatus = 0; // 0: 게임 중, 1: 승리, -1: 패배
+    private GameStatus gameStatus = GameStatus.PLAYING;
 
     public MineSweeper(GameLevel gameLevel, InputHandler inputHandler, OutputHandler outPutHandler) {
         this.gameBoard = new GameBoard(gameLevel);
@@ -43,24 +43,22 @@ public class MineSweeper implements GameRunnable, GameInitializable {
                 }
 
                 CellPosition cellInput = getCellInputFromUser();
-                String userActionInput = getUserActionInputFromUser();
-                actOnCell(cellInput, userActionInput);
+                UserAction userAction = getUserActionInputFromUser();
+                actOnCell(cellInput, userAction);
             } catch (GameException e) {
                 outPutHandler.showExceptionMessage(e);
-            } catch (Exception e) {
-                outPutHandler.showSimpleMessage("프로그램에 문제가 생겼습니다.");
             }
         }
     }
 
-    private void actOnCell(CellPosition cellPosition, String userActionInput) {
-        if (doesUserChooseToPlantFlag(userActionInput)) {
+    private void actOnCell(CellPosition cellPosition, UserAction userAction) {
+        if (userAction == UserAction.FLAG) {
             gameBoard.flagAt(cellPosition);
             checkIfGameIsOver();
             return;
         }
 
-        if (doesUserChooseToOpenCell(userActionInput)) {
+        if (userAction == UserAction.OPEN) {
             if (gameBoard.isLandMineCellAt(cellPosition)) {
                 gameBoard.openAt(cellPosition);
                 changeGameStatusToLose();
@@ -85,33 +83,25 @@ public class MineSweeper implements GameRunnable, GameInitializable {
         return cellPosition;
     }
 
-    private String getUserActionInputFromUser() {
+    private UserAction getUserActionInputFromUser() {
         outPutHandler.showCommentForUserAction();
-        return inputHandler.getInput();
+        return inputHandler.getActionFromUser();
     }
 
     private void changeGameStatusToLose() {
-        gameStatus = -1;
+        gameStatus = GameStatus.LOSE;
     }
 
     private void changeGameStatusToWin() {
-        gameStatus = 1;
-    }
-
-    private boolean doesUserChooseToOpenCell(String userActionInput) {
-        return userActionInput.equals("1");
-    }
-
-    private boolean doesUserChooseToPlantFlag(String userActionInput) {
-        return userActionInput.equals("2");
+        gameStatus = GameStatus.WIN;
     }
 
     private boolean doesUserLoseTheGame() {
-        return gameStatus == -1;
+        return gameStatus == GameStatus.LOSE;
     }
 
     private boolean doesUserWinTheGame() {
-        return gameStatus == 1;
+        return gameStatus == GameStatus.WIN;
     }
 
     private void checkIfGameIsOver() {

@@ -1,10 +1,11 @@
 package cleancode.minesweeper.tobe.io;
 
+import cleancode.minesweeper.tobe.UserAction;
 import cleancode.minesweeper.tobe.position.CellPosition;
 
 public interface InputHandler {
 
-    String getInput();
+    UserAction getActionFromUser();
 
     CellPosition getCellPositionFromUser();
 }
