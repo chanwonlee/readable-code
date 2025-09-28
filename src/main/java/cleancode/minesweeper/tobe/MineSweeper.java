@@ -1,8 +1,8 @@
 package cleancode.minesweeper.tobe;
 
+import cleancode.minesweeper.tobe.config.GameConfig;
 import cleancode.minesweeper.tobe.game.GameInitializable;
 import cleancode.minesweeper.tobe.game.GameRunnable;
-import cleancode.minesweeper.tobe.gamelevel.GameLevel;
 import cleancode.minesweeper.tobe.io.InputHandler;
 import cleancode.minesweeper.tobe.io.OutputHandler;
 import cleancode.minesweeper.tobe.position.CellPosition;
@@ -14,10 +14,10 @@ public class MineSweeper implements GameRunnable, GameInitializable {
     private final OutputHandler outPutHandler;
     private GameStatus gameStatus = GameStatus.PLAYING;
 
-    public MineSweeper(GameLevel gameLevel, InputHandler inputHandler, OutputHandler outPutHandler) {
-        this.gameBoard = new GameBoard(gameLevel);
-        this.inputHandler = inputHandler;
-        this.outPutHandler = outPutHandler;
+    public MineSweeper(GameConfig gameConfig) {
+        this.gameBoard = new GameBoard(gameConfig.getGameLevel());
+        this.inputHandler = gameConfig.getInputHandler();
+        this.outPutHandler = gameConfig.getOutputHandler();
     }
 
     @Override
