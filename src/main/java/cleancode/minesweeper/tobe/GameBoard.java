@@ -5,7 +5,10 @@ import cleancode.minesweeper.tobe.cell.EmptyCell;
 import cleancode.minesweeper.tobe.cell.LandMineCell;
 import cleancode.minesweeper.tobe.cell.NumberCell;
 import cleancode.minesweeper.tobe.gamelevel.GameLevel;
+import cleancode.minesweeper.tobe.position.CellPosition;
+import cleancode.minesweeper.tobe.position.RelativePosition;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
 
 public class GameBoard {
@@ -40,11 +43,12 @@ public class GameBoard {
 
         for (int row = 0; row < rowSize; row++) {
             for (int col = 0; col < colSize; col++) {
-                if (isLandMineCell(row, col)) {
+                CellPosition cellPosition = new CellPosition(row, col);
+                if (isLandMineCellAt(cellPosition)) {
                     continue;
                 }
 
-                int count = countNearbyLandMines(row, col);
+                int count = countNearbyLandMines(cellPosition);
                 if (count == 0) {
                     continue;
                 }
@@ -54,20 +58,23 @@ public class GameBoard {
         }
     }
 
-    public String getSign(int rowIndex, int colIndex) {
-        return findCell(rowIndex, colIndex).getSign();
+    public String getSign(CellPosition cellPosition) {
+        Cell cell = findCell(cellPosition);
+        return cell.getSign();
     }
 
-    private Cell findCell(int rowIndex, int colIndex) {
-        return board[rowIndex][colIndex];
+    private Cell findCell(CellPosition cellPosition) {
+        return board[cellPosition.rowIndex()][cellPosition.colIndex()];
     }
 
-    public void flag(int rowIndex, int colIndex) {
-        findCell(rowIndex, colIndex).flag();
+    public void flagAt(CellPosition cellPosition) {
+        Cell cell = findCell(cellPosition);
+        cell.flag();
     }
 
-    public void open(int rowIndex, int colIndex) {
-        findCell(rowIndex, colIndex).open();
+    public void openAt(CellPosition cellPosition) {
+        Cell cell = findCell(cellPosition);
+        cell.open();
     }
 
     public int getRowSize() {
@@ -78,8 +85,8 @@ public class GameBoard {
         return board[0].length;
     }
 
-    public boolean isLandMineCell(int selectedRowIndex, int selectedColIndex) {
-        Cell cell = findCell(selectedRowIndex, selectedColIndex);
+    public boolean isLandMineCellAt(CellPosition cellPosition) {
+        Cell cell = findCell(cellPosition);
         return cell.isLandMine();
     }
 
@@ -89,69 +96,54 @@ public class GameBoard {
                 .allMatch(Cell::isChecked);
     }
 
-    public void openSurroundedCells(int row, int col) {
-        if (row < 0 || row >= getRowSize() || col < 0 || col >= getColSize()) {
-            return;
-        }
-        if (isOpenedCell(row, col)) {
-            return;
-        }
-        if (isLandMineCell(row, col)) {
-            return;
-        }
-        open(row, col);
+    public boolean isInvalidCellPosition(CellPosition cellPosition) {
+        int rowSize = getRowSize();
+        int colSize = getColSize();
 
-        if (deosCellHaveLandMindCount(row, col)) {
-            return;
-        }
-
-        openSurroundedCells(row - 1, col - 1);
-        openSurroundedCells(row - 1, col);
-        openSurroundedCells(row - 1, col + 1);
-        openSurroundedCells(row, col - 1);
-        openSurroundedCells(row, col + 1);
-        openSurroundedCells(row + 1, col - 1);
-        openSurroundedCells(row + 1, col);
-        openSurroundedCells(row + 1, col + 1);
+        return cellPosition.isRowIndexMoreThanOrEqual(rowSize)
+               || cellPosition.isColIndexMoreThanOrEqual(colSize);
     }
 
-    private boolean isOpenedCell(int row, int col) {
-        return findCell(row, col).isOpened();
+    public void openSurroundedCells(CellPosition cellPosition) {
+        if (isOpenedCell(cellPosition)) {
+            return;
+        }
+        if (isLandMineCellAt(cellPosition)) {
+            return;
+        }
+
+        openAt(cellPosition);
+
+        if (deosCellHaveLandMindCount(cellPosition)) {
+            return;
+        }
+
+        List<CellPosition> surroundedPositions = calculateSurroundedPositions(cellPosition);
+        surroundedPositions.forEach(this::openSurroundedCells);
     }
 
-    private boolean deosCellHaveLandMindCount(int row, int col) {
-        return findCell(row, col).hasLandMineCount();
+    private boolean isOpenedCell(CellPosition cellPosition) {
+        Cell cell = findCell(cellPosition);
+        return cell.isOpened();
     }
 
-    private int countNearbyLandMines(int row, int col) {
-        int rowSize = board.length;
-        int colSize = board[0].length;
+    private boolean deosCellHaveLandMindCount(CellPosition cellPosition) {
+        Cell cell = findCell(cellPosition);
+        return cell.hasLandMineCount();
+    }
 
-        int count = 0;
-        if (row - 1 >= 0 && col - 1 >= 0 && isLandMineCell(row - 1, col - 1)) {
-            count++;
-        }
-        if (row - 1 >= 0 && isLandMineCell(row - 1, col)) {
-            count++;
-        }
-        if (row - 1 >= 0 && col + 1 < colSize && isLandMineCell(row - 1, col + 1)) {
-            count++;
-        }
-        if (col - 1 >= 0 && isLandMineCell(row, col - 1)) {
-            count++;
-        }
-        if (col + 1 < colSize && isLandMineCell(row, col + 1)) {
-            count++;
-        }
-        if (row + 1 < rowSize && col - 1 >= 0 && isLandMineCell(row + 1, col - 1)) {
-            count++;
-        }
-        if (row + 1 < rowSize && isLandMineCell(row + 1, col)) {
-            count++;
-        }
-        if (row + 1 < rowSize && col + 1 < colSize && isLandMineCell(row + 1, col + 1)) {
-            count++;
-        }
-        return count;
+    private int countNearbyLandMines(CellPosition cellPosition) {
+        return (int) calculateSurroundedPositions(cellPosition).stream()
+                .filter(this::isLandMineCellAt)
+                .count();
+    }
+
+    private List<CellPosition> calculateSurroundedPositions(CellPosition cellPosition) {
+        return RelativePosition.SURROUNDED_POSITIONS.stream()
+                .filter(cellPosition::canCalculatePositionBy)
+                .map(cellPosition::calculatePositionBy)
+                .filter(position -> position.isRowIndexLessThan(getRowSize()))
+                .filter(position -> position.isColIndexLessThan(getColSize()))
+                .toList();
     }
 }
