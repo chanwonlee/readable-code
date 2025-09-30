@@ -10,8 +10,9 @@ import cleancode.minesweeper.tobe.minesweeper.board.position.CellPosition;
 import cleancode.minesweeper.tobe.minesweeper.board.position.CellPositions;
 import cleancode.minesweeper.tobe.minesweeper.board.position.RelativePosition;
 import cleancode.minesweeper.tobe.minesweeper.gamelevel.GameLevel;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.List;
-import java.util.Stack;
 
 public class GameBoard {
 
@@ -149,7 +150,7 @@ public class GameBoard {
     */
 
     private void openSurroundedCells(CellPosition cellPosition) {
-        Stack<CellPosition> stack = new Stack<>();
+        Deque<CellPosition> stack = new ArrayDeque<>();
         stack.push(cellPosition);
 
         while (!stack.isEmpty()) {
@@ -157,7 +158,7 @@ public class GameBoard {
         }
     }
 
-    private void openAndPushCellAt(Stack<CellPosition> stack) {
+    private void openAndPushCellAt(Deque<CellPosition> stack) {
         CellPosition currentCellPosition = stack.pop();
         if (isOpenedCell(currentCellPosition)) {
             return;
