@@ -35,13 +35,13 @@ public record CellPositions(List<CellPosition> positions) {
 
     }
 
-    private boolean doesNotContain(CellPosition position) {
-        return !positions.contains(position);
-    }
-
     public List<CellPosition> extractRandomPositions(int count) {
         ArrayList<CellPosition> cellPositions = new ArrayList<>(positions);
         Collections.shuffle(cellPositions);
         return cellPositions.subList(0, count);
+    }
+
+    private boolean doesNotContain(CellPosition position) {
+        return !positions.contains(position);
     }
 }
