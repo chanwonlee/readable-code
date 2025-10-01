@@ -3,17 +3,22 @@ package cleancode.studycafe.practice;
 import cleancode.studycafe.practice.exception.AppException;
 import cleancode.studycafe.practice.io.InputHandler;
 import cleancode.studycafe.practice.io.OutputHandler;
-import cleancode.studycafe.practice.io.StudyCafeFileHandler;
+import cleancode.studycafe.practice.io.file.StudyCafeLockerPassFileHandler;
+import cleancode.studycafe.practice.io.file.StudyCafePassFileHandler;
 import cleancode.studycafe.practice.model.StudyCafeLockerPass;
 import cleancode.studycafe.practice.model.StudyCafePass;
+import cleancode.studycafe.practice.model.StudyCafePassCatalog;
 import cleancode.studycafe.practice.model.StudyCafePassType;
+import cleancode.studycafe.practice.provider.StudyCafeLockerPassProvider;
+import cleancode.studycafe.practice.provider.StudyCafePassProvider;
 import java.util.List;
 
 public class StudyCafePassMachine {
 
     private final InputHandler inputHandler = new InputHandler();
     private final OutputHandler outputHandler = new OutputHandler();
-    private final StudyCafeFileHandler studyCafeFileHandler = new StudyCafeFileHandler();
+    private final StudyCafePassProvider studyCafePassProvider = new StudyCafePassFileHandler();
+    private final StudyCafeLockerPassProvider studyCafeLockerPassProvider = new StudyCafeLockerPassFileHandler();
 
     public void run() {
         printWelcomeMessage();
@@ -50,13 +55,21 @@ public class StudyCafePassMachine {
     }
 
     private StudyCafePass getPassesFromUserAction(StudyCafePassType studyCafePassType) {
-        List<StudyCafePass> studyCafePasses = getStudyCafePasses(studyCafePassType);
-        outputHandler.showPassListForSelection(studyCafePasses);
-        return inputHandler.getSelectPass(studyCafePasses);
+        StudyCafePassCatalog catalog = getStudyCafePasses(studyCafePassType);
+        outputHandler.showPassListForSelection(catalog);
+        return inputHandler.getSelectPass(catalog);
+    }
+
+    private StudyCafePassCatalog getStudyCafePasses(StudyCafePassType studyCafePassType) {
+        List<StudyCafePass> allStudyCafePasses = studyCafePassProvider.getStudyCafePasses();
+        List<StudyCafePass> passes = allStudyCafePasses.stream()
+                .filter(studyCafePass -> studyCafePass.getPassType() == studyCafePassType)
+                .toList();
+        return new StudyCafePassCatalog(passes);
     }
 
     private StudyCafeLockerPass getLockerPass(StudyCafePass selectedPass) {
-        List<StudyCafeLockerPass> lockerPasses = studyCafeFileHandler.readLockerPasses();
+        List<StudyCafeLockerPass> lockerPasses = studyCafeLockerPassProvider.getStudyCafeLockerPasses();
         return lockerPasses.stream()
                 .filter(option ->
                         option.getPassType() == selectedPass.getPassType()
@@ -64,12 +77,5 @@ public class StudyCafePassMachine {
                 )
                 .findFirst()
                 .orElse(null);
-    }
-
-    private List<StudyCafePass> getStudyCafePasses(StudyCafePassType studyCafePassType) {
-        List<StudyCafePass> studyCafePasses = studyCafeFileHandler.readStudyCafePasses();
-        return studyCafePasses.stream()
-                .filter(studyCafePass -> studyCafePass.getPassType() == studyCafePassType)
-                .toList();
     }
 }
